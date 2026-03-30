@@ -2,12 +2,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <string.h>
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
 
 const int Width = 800, Height = 800;
 
 GLuint VAO1,VAO2,VAO3, VBO1, VBO2, VBO3, Shader;
 
-GLint UnifromXMovement;
+GLint Uniform_model;
 
 bool direction = true;
 float trOffset = 0.0f;
@@ -21,11 +24,11 @@ static const char* VertexShader = "       \n\
                                            \n\
 layout (location = 0) in vec3 pos;          \n\
                                              \n\
- uniform  float xmove;                             \n\
+ uniform  mat4 model;                             \n\
                                               \n\
 void main()                                   \n\
 {                                              \n\
-   gl_Position = vec4(pos.x+xmove,pos.y,pos.z,1.0);    \n\
+   gl_Position =  model * vec4(pos.x,pos.y,pos.z,1.0);    \n\
 }";
 
 static const char* FragmentShader = "       \n\
@@ -187,7 +190,7 @@ void complieShaders()
 	}
 
 	// now u can get the value of the uniform variables
-	UnifromXMovement = glGetUniformLocation(Shader, "xmove");
+	Uniform_model = glGetUniformLocation(Shader,"model");
 
 }
 
@@ -271,7 +274,14 @@ int main()
 		// do the actual program work
 		glUseProgram(Shader);
 
-		glUniform1f(UnifromXMovement,trOffset);
+		// model creation && sending into shader
+		glm::mat4 model(1.0f);
+
+		model = glm::translate(model, glm::vec3(trOffset, trOffset, trOffset));
+
+		// now send the model all u need to know is u need to send the translation before the vertex array are bound .
+		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, glm::value_ptr(model));
+
 		glBindVertexArray(VAO1);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(VAO2);
