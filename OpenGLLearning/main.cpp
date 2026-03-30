@@ -7,6 +7,7 @@
 #include <glm\gtc\type_ptr.hpp>
 
 const int Width = 800, Height = 800;
+const float toRadians = 3.1428 / 180;
 
 GLuint VAO1,VAO2,VAO3, VBO1, VBO2, VBO3, Shader;
 
@@ -276,8 +277,12 @@ int main()
 
 		// model creation && sending into shader
 		glm::mat4 model(1.0f);
-
-		model = glm::translate(model, glm::vec3(trOffset, trOffset, trOffset));
+		// just roate it by 90 degrees while translating
+		
+		model = glm::translate(model, glm::vec3(trOffset, 0.0, 0.0));
+		model = glm::rotate(model, 45 * toRadians, glm::vec3(0.0, 0.0, 1.0));
+		
+		
 
 		// now send the model all u need to know is u need to send the translation before the vertex array are bound .
 		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, glm::value_ptr(model));
