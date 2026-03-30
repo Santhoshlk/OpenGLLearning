@@ -7,13 +7,25 @@ const int Width = 800, Height = 800;
 
 GLuint VAO1,VAO2,VAO3, VBO1, VBO2, VBO3, Shader;
 
+GLint UnifromXMovement;
+
+bool direction = true;
+float trOffset = 0.0f;
+float trMaxOffset = 0.5f;
+float trIncrement = 0.005f;
+
+
+
 static const char* VertexShader = "       \n\
 #version 330                              \n\
                                            \n\
 layout (location = 0) in vec3 pos;          \n\
+                                             \n\
+ uniform  float xmove;                             \n\
+                                              \n\
 void main()                                   \n\
 {                                              \n\
-   gl_Position = vec4(pos.x,pos.y,pos.z,1.0);    \n\
+   gl_Position = vec4(pos.x+xmove,pos.y,pos.z,1.0);    \n\
 }";
 
 static const char* FragmentShader = "       \n\
@@ -174,6 +186,9 @@ void complieShaders()
 		return;
 	}
 
+	// now u can get the value of the uniform variables
+	UnifromXMovement = glGetUniformLocation(Shader, "xmove");
+
 }
 
 
@@ -229,11 +244,34 @@ int main()
 	{
 		glfwPollEvents();
 
+		// logic
+		if (direction)
+		{
+			// check and increment
+			if (trOffset >= trMaxOffset)
+			{
+				direction = false;
+			}
+			trOffset += trIncrement;
+		}
+		else
+		{
+			if (trOffset <= -1 * (trMaxOffset))
+			{
+				direction = true;
+			}
+			trOffset -= trIncrement;
+		}
+		
+
+
 		// u can give a clear color
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		// do the actual program work
 		glUseProgram(Shader);
+
+		glUniform1f(UnifromXMovement,trOffset);
 		glBindVertexArray(VAO1);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(VAO2);
