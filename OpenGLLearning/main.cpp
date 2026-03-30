@@ -1,209 +1,253 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <string.h>
 
-const GLint Width = 800, Height = 800;
+const int Width = 800, Height = 800;
 
-// these are the variables assigned to the Parts of Shader Pipeline
-GLuint Vao, Vbo, Shader;
+GLuint VAO1,VAO2,VAO3, VBO1, VBO2, VBO3, Shader;
 
-// Create the Shaders
-static const char* VertexShader = "   \n\
-#version 330                           \n\
-                                        \n\
-// now create the input to the shader    \n\
-layout (location = 0) in vec3 pos;  \n\
-                                          \n\
-void main()                                \n\
-{                                           \n\
-   gl_Position =  vec4( pos.x*0.5,pos.y*0.5,pos.z*0.5,1.0); \n\
+static const char* VertexShader = "       \n\
+#version 330                              \n\
+                                           \n\
+layout (location = 0) in vec3 pos;          \n\
+void main()                                   \n\
+{                                              \n\
+   gl_Position = vec4(pos.x,pos.y,pos.z,1.0);    \n\
 }";
 
-static const char* FragmentShader = "   \n\
-#version 330                           \n\
-                                        \n\
-// now create out color                  \n\
- out vec4 color;                         \n\
-                                          \n\
-void main()                                \n\
-{                                           \n\
-   color = vec4(0.0,1.0,0.0,1.0); \n\
+static const char* FragmentShader = "       \n\
+#version 330                                 \n\
+                                             \n\
+ out vec4 color;                             \n\
+void main()                                   \n\
+{                                              \n\
+   color = vec4(0.0,1.0,1.0,1.0);                \n\
 }";
 
-
-
-void CreateTraingle()
+void CreatePenatgon()
 {
-	// Create the Points for the vertices obviously
-	GLfloat vertices[9] = {
-		-1.0f,-1.0f,0.0f,
-		1.0f,-1.0f,0.0f,
-		0.0f,1.0f,0.0f
+	GLfloat Triangle1[9] = {
+		0.5f,0.0f,0.0f,
+		0.1545f,0.4755f,0.0f,
+		-0.4045f,0.2939f,0.0f
+
+	};
+	GLfloat Triangle2[9] = {
+		0.5f,0.0f,0.0f,
+		-0.4045f,0.2939f,0.0f,
+		-0.4045f,-0.2939f,0.0f
+
+	};
+	GLfloat Triangle3[9] = {
+		0.5f,0.0f,0.0f,
+		-0.4045f,-0.2939f,0.0f,
+		0.1545f,-0.4755f,0.0f
 	};
 
-	// Generate the Vertex Array required
-	glGenVertexArrays(1, &Vao);
-	glBindVertexArray(Vao);
+	// now here we need 3 vao and 3 vbo 
+	glGenVertexArrays(1, &VAO1);
+	glBindVertexArray(VAO1);
 
-	// Generate the Buffer Bind the Buffer and Add the Data to the Buffer
-	glGenBuffers(1, &Vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, Vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// Make the Attribute Pointer and Enable the value of VertexArray
-	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
+	// Now lets create bind and add data to buffers
+	glGenBuffers(1, &VBO1);
+	glBindBuffer(GL_ARRAY_BUFFER,VBO1);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle1), Triangle1, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-
-	// as Buffer is Completed u need to unbind it
+	// now unbind the first one
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+
+
+	// now here we need 3 vao and 3 vbo 
+	glGenVertexArrays(1, &VAO2);
+	glBindVertexArray(VAO2);
+
+	// Now lets create bind and add data to buffers
+	glGenBuffers(1, &VBO2);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle2), Triangle2, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// now unbind the first one
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	// now here we need 3 vao and 3 vbo 
+	glGenVertexArrays(1, &VAO3);
+	glBindVertexArray(VAO3);
+
+	// Now lets create bind and add data to buffers
+	glGenBuffers(1, &VBO3);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO3);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle3), Triangle3, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// now unbind the first one
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	return;
+	
 }
 
 void AddShader(GLuint Program, const char* CurrentShader, GLenum ShaderType)
 {
-	// get the shader code
 	GLuint ShaderID = glCreateShader(ShaderType);
 
-	// store the shader length and the shadere as we need it
-	const GLchar* shaderCode[1];
-	shaderCode[0] = CurrentShader;
+	// u need to store the shader in  a array
+	const GLchar* ShaderCode[1];
+	ShaderCode[0] = CurrentShader;
 
+	GLint ShaderLength[1];
+	ShaderLength[0] = strlen(ShaderCode[0]);
 
-	 GLint ShaderSize[1];
-	ShaderSize[0] = strlen(shaderCode[0]);
-
-	glShaderSource(ShaderID, 1, shaderCode, ShaderSize);
-	
-
-	// attach the shader 
-	
-	// u have to do the Compiling
+	glShaderSource(ShaderID, 1, ShaderCode, ShaderLength);
+    
+	//complie the shader
 	glCompileShader(ShaderID);
-	glAttachShader(Program, ShaderID);
+	//erreor Handling
 	// error handling
-	GLint result = 0;
+	GLint Result = 0;
 	GLchar ErrorLog[1024] = { 0 };
-	glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &result);
-	if (!result)
+
+	glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
+	if (!Result)
 	{
-		std::cout << "the Shader Compiling  process is not done properly" << std::endl;
+		std::cout << "the link Status is a failure" << std::endl;
 		glGetShaderInfoLog(ShaderID, sizeof(ErrorLog), 0, ErrorLog);
+		std::cout << "The Error Log :" << "\n" << ErrorLog << std::endl;
 		return;
 	}
+
+	// u acn add the shader to the Program 
+	glAttachShader(Program, ShaderID);
 	return;
+
 }
 
-void CompileShaders()
+
+void complieShaders()
 {
 	Shader = glCreateProgram();
+
 	if (!Shader)
 	{
-		std::cout << "The Program Has Not Been Created " << std::endl;
+		std::cout << "Shader Program Creation is not done Properly" << std::endl;
 		return;
 	}
-
-	// add the shaders to the Program
+	// u add the shadets to the program
 	AddShader(Shader, VertexShader, GL_VERTEX_SHADER);
 	AddShader(Shader, FragmentShader, GL_FRAGMENT_SHADER);
 
-	// u have to handle the linking and error handling
-	GLint result = 0;
+	// link the shaders to the Program
+	glLinkProgram(Shader);
+
+	// error handling
+	GLint Result = 0;
 	GLchar ErrorLog[1024] = { 0 };
 
-	// u can do the actual linking
-	glLinkProgram(Shader);
-	glGetProgramiv(Shader, GL_LINK_STATUS, &result);
-	if (!result)
+	glGetProgramiv(Shader, GL_LINK_STATUS, &Result);
+	if (!Result)
 	{
-		std::cout << "the linking process is not done properly" << std::endl;
+		std::cout << "the link Status is a failure" << std::endl;
 		glGetProgramInfoLog(Shader, sizeof(ErrorLog), 0, ErrorLog);
+		std::cout << "The Error Log :" << "\n" << ErrorLog << std::endl;
 		return;
 	}
+
+	// now u validate
 	glValidateProgram(Shader);
-	glGetProgramiv(Shader, GL_VALIDATE_STATUS, &result);
-	if (!result)
+
+	
+	glGetProgramiv(Shader, GL_VALIDATE_STATUS, &Result);
+	if (!Result)
 	{
-		std::cout << "the Validation  process is not done properly" << std::endl;
+		std::cout << "the Validate Status is a failure" << std::endl;
 		glGetProgramInfoLog(Shader, sizeof(ErrorLog), 0, ErrorLog);
+		std::cout << "The Error Log :" << "\n" << ErrorLog << std::endl;
 		return;
 	}
+
 }
-
-
-
 
 
 
 int main()
 {
-	//1)GLFW initialization
+	//glfw init
 	if (!glfwInit())
 	{
-		std::cout << "Glfw Initialization has Failed" << std::endl;
+		std::cout << "The Glfw Initialization is failed" << std::endl;
 		glfwTerminate();
 		return 1;
-
 	}
 
-	//2) set all the Context Prequistics
+	// window prequistics
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	//3) create the window and make the context
-	GLFWwindow* TestMainWindow = glfwCreateWindow(Width, Height, "Test Main Window ", NULL, NULL);
-	if (!TestMainWindow)
+	// winow creation
+	GLFWwindow* MainWindow = glfwCreateWindow(Width, Height, "Main Window", NULL, NULL);
+
+	if (!MainWindow)
 	{
-		// u can print that the window creation gone wrong
-		std::cout << "The window is not suceesfully created" << std::endl;
+		std::cout << "The Main Window Initialization Failed" << std::endl;
 		glfwTerminate();
 		return 1;
-	}
-	glfwMakeContextCurrent(TestMainWindow);
 
-	//4) crreate viewport
+	}
+	// Make the winddow as the current context
+	glfwMakeContextCurrent(MainWindow);
+
+	// get the buffer size
 	int BufferWidth, BufferHeight;
-	glfwGetFramebufferSize(TestMainWindow, &BufferWidth, &BufferHeight);
+	glfwGetFramebufferSize(MainWindow, &BufferWidth, &BufferHeight);
 	glViewport(0, 0, BufferWidth, BufferHeight);
 
-	// 5) glew initialization
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{
-		std::cout << "Glew didn't initilaize succesfully" << std::endl;
-		glfwDestroyWindow(TestMainWindow);
+		std::cout << "Glew UInitialization is failed" << std::endl;
+		glfwDestroyWindow(MainWindow);
 		glfwTerminate();
 		return 1;
 	}
 
+	  CreatePenatgon();
+	  complieShaders();
 
-	// after everything is initialized now u can do the actual graphics part
-	CreateTraingle();
-	CompileShaders();
-
-
-	// now the actual loop logic
-	while (!glfwWindowShouldClose(TestMainWindow))
+	// the actual call loop
+	while (!glfwWindowShouldClose(MainWindow))
 	{
-		// to get all events 
 		glfwPollEvents();
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+		// u can give a clear color
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		// do the actual logic of implimenting the shaders
+		// do the actual program work
 		glUseProgram(Shader);
-		glBindVertexArray(Vao);
+		glBindVertexArray(VAO1);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(VAO2);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(VAO3);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 		glUseProgram(0);
-		// for no flicker 
-		glfwSwapBuffers(TestMainWindow);
+		glfwSwapBuffers(MainWindow);
 	}
-
-	glfwDestroyWindow(TestMainWindow);
+	glfwDestroyWindow(MainWindow);
 	glfwTerminate();
+
+	std::cin.get();
 	return 0;
+
 }
