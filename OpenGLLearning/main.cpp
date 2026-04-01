@@ -19,6 +19,17 @@ float trMaxOffset = 0.5f;
 float trIncrement = 0.005f;
 
 
+bool ScaleDirection = true;
+float ScaleOffset = 0.4;
+float ScaleMin = 0.1f;
+float scaleMax = 0.8f;
+float ScaleIncrement = 0.01f;
+
+
+float RotOffset = 0;
+float RotIncrement = 0.5f;
+
+
 
 static const char* VertexShader = "       \n\
 #version 330                              \n\
@@ -29,7 +40,7 @@ layout (location = 0) in vec3 pos;          \n\
                                               \n\
 void main()                                   \n\
 {                                              \n\
-   gl_Position =  model * vec4(pos.x,pos.y,pos.z,1.0);    \n\
+   gl_Position =  model * vec4(pos,1.0);    \n\
 }";
 
 static const char* FragmentShader = "       \n\
@@ -267,6 +278,32 @@ int main()
 			trOffset -= trIncrement;
 		}
 		
+		if (ScaleDirection)
+		{
+
+			if (ScaleOffset >= scaleMax)
+			{
+				ScaleDirection = false;
+			}
+			ScaleOffset += ScaleIncrement;
+		}
+		else
+		{
+			if (ScaleOffset <=ScaleMin)
+			{
+				ScaleDirection = true;
+			}
+			ScaleOffset -= ScaleIncrement;
+		}
+
+		if(RotOffset <= 360.f)
+		{  
+			RotOffset += RotIncrement;
+		}
+		else
+		{
+			RotOffset -= 360.f;
+		}
 
 
 		// u can give a clear color
@@ -275,17 +312,17 @@ int main()
 		// do the actual program work
 		glUseProgram(Shader);
 
-		// model creation && sending into shader
+	   
 		glm::mat4 model(1.0f);
-		// just roate it by 90 degrees while translating
-		
-		model = glm::translate(model, glm::vec3(trOffset, 0.0, 0.0));
-		model = glm::rotate(model, 45 * toRadians, glm::vec3(0.0, 0.0, 1.0));
-		
-		
+		//model = glm::rotate(model, RotOffset* toRadians,glm::vec3(0.f,0.f,1.f));
+		model = glm::translate(model,glm::vec3(trOffset,0.0f,0.0f));
+		// finally u can scale
+		model = glm::scale(model, glm::vec3(1.0f, ScaleOffset, 1.0f));
 
-		// now send the model all u need to know is u need to send the translation before the vertex array are bound .
-		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, glm::value_ptr(model));
+		
+		// now actually send the value into the vertex shader
+		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, value_ptr(model));
+	// u need to do this before u bind the vertex array as it uses vertex shader
 
 		glBindVertexArray(VAO1);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
