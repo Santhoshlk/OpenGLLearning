@@ -7,9 +7,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 const int Width = 800, Height = 800;
-const float toRadians = 3.1428 / 180;
+const float toRadians = glm::pi<float>() / 180;
 
-GLuint VAO1,VAO2,VAO3, VBO1, VBO2, VBO3, Shader;
+GLuint VAO, VBO, EBO, Shader;
 
 GLint Uniform_model;
 
@@ -57,72 +57,56 @@ void main()                                   \n\
 
 void CreatePenatgon()
 {
-	GLfloat Triangle1[9] = {
-		0.5f,0.0f,0.0f,
-		0.1545f,0.4755f,0.0f,
-		-0.4045f,0.2939f,0.0f
-
-	};
-	GLfloat Triangle2[9] = {
-		0.5f,0.0f,0.0f,
-		-0.4045f,0.2939f,0.0f,
-		-0.4045f,-0.2939f,0.0f
-
-	};
-	GLfloat Triangle3[9] = {
-		0.5f,0.0f,0.0f,
-		-0.4045f,-0.2939f,0.0f,
-		0.1545f,-0.4755f,0.0f
+	// first u give all the vertices 
+	GLfloat Vertices[] =
+	{
+	   0.0f,  0.0f, 1.0f,  // 0 - apex (top)
+	 0.5f,  0.0f, 0.0f,  // 1 - right
+	 0.1545f, 0.4755f, 0.0f, // 2 - top right
+	-0.4045f, 0.2939f, 0.0f, // 3 - top left
+	-0.4045f,-0.2939f, 0.0f, // 4 - bottom left
+	 0.1545f,-0.4755f, 0.0f  // 5 - bottom right
 	};
 
-	// now here we need 3 vao and 3 vbo 
-	glGenVertexArrays(1, &VAO1);
-	glBindVertexArray(VAO1);
+	// indices the way they are taken should be defined in the start
+	unsigned int Indices[] =
+	{
+		// pentagon base
+     1, 2, 3,
+     1, 3, 4,
+     1, 4, 5,
+    // pyramid sides
+     0, 1, 2,
+     0, 2, 3,
+     0, 3, 4,
+     0, 4, 5,
+     0, 5, 1
+	};
 
-	// Now lets create bind and add data to buffers
-	glGenBuffers(1, &VBO1);
-	glBindBuffer(GL_ARRAY_BUFFER,VBO1);
-	glBufferData(GL_ARRAY_BUFFER,sizeof(Triangle1),Triangle1,GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,0,0);
-	glEnableVertexAttribArray(0);
+	// now u gen 1 VAO , 1 VBO, 1 EBO
+  
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
-	// now unbind the first one
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	// make EBO next VBO
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
+	// make the vbo
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
 
-
-	// now here we need 3 vao and 3 vbo 
-	glGenVertexArrays(1, &VAO2);
-	glBindVertexArray(VAO2);
-
-	// Now lets create bind and add data to buffers
-	glGenBuffers(1, &VBO2);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle2), Triangle2, GL_STATIC_DRAW);
+	// u are gonna say how to traverse the vbo that dosent change
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	// now unbind the first one
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// now u can unbind top down hierarchy
 	glBindVertexArray(0);
-
-	// now here we need 3 vao and 3 vbo 
-	glGenVertexArrays(1, &VAO3);
-	glBindVertexArray(VAO3);
-
-	// Now lets create bind and add data to buffers
-	glGenBuffers(1, &VBO3);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO3);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle3), Triangle3, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// now unbind the first one
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 
-	return;
 	
 }
 
@@ -314,7 +298,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		// do the actual program work
 		glm::mat4 model(1.0f);
-		//model = glm::rotate(model, RotOffset* toRadians,glm::vec3(0.f,0.f,1.f));
+		model = glm::rotate(model, RotOffset* toRadians,glm::vec3(0.0f,1.0f,0.0f));
 		//model = glm::translate(model, glm::vec3(trOffset, 0.0f, 0.0f));
 		// finally u can scale
 		model = glm::scale(model, glm::vec3(1.0f,1.0f, 1.0f));
@@ -324,14 +308,19 @@ int main()
 		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, value_ptr(model));
 	// u need to do this before u bind the vertex array as it uses vertex shader
 
-		glBindVertexArray(VAO1);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindVertexArray(VAO2);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindVertexArray(VAO3);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(VAO);
+		// u have to bind EBO
+		// beacuse the program needs to know how to traverese the elements 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		// now draw the Elements
+		glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
+
+		// unbind the vbo buffer and Program
 		glBindVertexArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glUseProgram(0);
+
+		// atlast u can just sawp the Buffers
 		glfwSwapBuffers(MainWindow);
 	}
 	glfwDestroyWindow(MainWindow);
