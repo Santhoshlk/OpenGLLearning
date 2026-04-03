@@ -11,7 +11,7 @@ const float toRadians = glm::pi<float>() / 180;
 
 GLuint VAO, VBO, EBO, Shader;
 
-GLint Uniform_model;
+GLint Uniform_model , Uniform_Projection;
 
 bool direction = true;
 float trOffset = 0.0f;
@@ -37,11 +37,12 @@ static const char* VertexShader = "       \n\
 layout (location = 0) in vec3 pos;          \n\
                                              \n\
  uniform  mat4 model;                             \n\
+ uniform  mat4 projection;                             \n\
  out vec4 VertexColor;                                     \n\
                                               \n\
 void main()                                   \n\
 {                                              \n\
-   gl_Position =  model * vec4(pos,1.0); \n\
+   gl_Position =  projection * model * vec4(pos,1.0); \n\
    VertexColor = vec4(clamp(pos,0.0f,1.0f),1.0f);                                       \n\
 }";
 
@@ -190,6 +191,7 @@ void ProcessingShaders()
 
 	// now u can get the value of the uniform variables
 	Uniform_model = glGetUniformLocation(Shader,"model");
+	Uniform_Projection = glGetUniformLocation(Shader, "projection");
 
 }
 
@@ -244,6 +246,13 @@ int main()
 
 	  CreatePenatgon();
 	 ProcessingShaders();
+
+	 // make the projection matrix
+	 glm::mat4 projectionMatrix(1.0f);
+	 projectionMatrix = glm::perspective(45.0f,(GLfloat)BufferWidth/(GLfloat)BufferHeight,0.1f,100.f);
+
+
+
 
 	// the renderer loop
 	while (!glfwWindowShouldClose(MainWindow))
@@ -304,14 +313,16 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// do the actual program work
 		glm::mat4 model(1.0f); 
+
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
 		model = glm::rotate(model, RotOffset* toRadians,glm::vec3(0.0f,1.0f,0.0f));
-		//model = glm::translate(model, glm::vec3(trOffset, 0.0f, 0.0f));
 		// finally u can scale
 		model = glm::scale(model, glm::vec3(1.0f,1.0f, 1.0f));
 		glUseProgram(Shader);
 		
 		// now actually send the value into the vertex shader
 		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, value_ptr(model));
+		glUniformMatrix4fv(Uniform_Projection, 1, GL_FALSE, value_ptr(projectionMatrix));
 	    // u need to do this before u bind the vertex array as it uses vertex shader
 		// u only need to do vao as it stores all the data no need to bind others
 		glBindVertexArray(VAO);
