@@ -227,6 +227,10 @@ int main()
 	// get the buffer size
 	int BufferWidth, BufferHeight;
 	glfwGetFramebufferSize(MainWindow, &BufferWidth, &BufferHeight);
+
+	// here u need to enable the depth test as we are doing a 3d object
+	glEnable(GL_DEPTH_TEST);
+
 	glViewport(0, 0, BufferWidth, BufferHeight);
 
 	glewExperimental = GL_TRUE;
@@ -295,9 +299,11 @@ int main()
 
 		// u can give a clear color
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+
+		// u need to clear the color as well as depth test bit values in the pixels 
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// do the actual program work
-		glm::mat4 model(1.0f);
+		glm::mat4 model(1.0f); 
 		model = glm::rotate(model, RotOffset* toRadians,glm::vec3(0.0f,1.0f,0.0f));
 		//model = glm::translate(model, glm::vec3(trOffset, 0.0f, 0.0f));
 		// finally u can scale
@@ -306,18 +312,12 @@ int main()
 		
 		// now actually send the value into the vertex shader
 		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, value_ptr(model));
-	// u need to do this before u bind the vertex array as it uses vertex shader
-
+	    // u need to do this before u bind the vertex array as it uses vertex shader
+		// u only need to do vao as it stores all the data no need to bind others
 		glBindVertexArray(VAO);
-		// u have to bind EBO
-		// beacuse the program needs to know how to traverese the elements 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		// now draw the Elements
 		glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
-
-		// unbind the vbo buffer and Program
 		glBindVertexArray(0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glUseProgram(0);
 
 		// atlast u can just sawp the Buffers
