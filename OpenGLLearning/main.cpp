@@ -1,10 +1,10 @@
 #include <iostream>
+#include <string.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <string.h>
-#include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 const int Width = 800, Height = 800;
 const float toRadians = 3.1428 / 180;
@@ -37,19 +37,22 @@ static const char* VertexShader = "       \n\
 layout (location = 0) in vec3 pos;          \n\
                                              \n\
  uniform  mat4 model;                             \n\
+ out vec4 VertexColor;                                     \n\
                                               \n\
 void main()                                   \n\
 {                                              \n\
-   gl_Position =  model * vec4(pos,1.0);    \n\
+   gl_Position =  model * vec4(pos,1.0); \n\
+   VertexColor = vec4(clamp(pos,0.0f,1.0f),1.0f);                                       \n\
 }";
 
 static const char* FragmentShader = "       \n\
 #version 330                                 \n\
                                              \n\
  out vec4 color;                             \n\
+ in  vec4 VertexColor;                                     \n\
 void main()                                   \n\
 {                                              \n\
-   color = vec4(0.0,1.0,1.0,1.0);                \n\
+   color = VertexColor;                \n\
 }";
 
 void CreatePenatgon()
@@ -79,8 +82,8 @@ void CreatePenatgon()
 	// Now lets create bind and add data to buffers
 	glGenBuffers(1, &VBO1);
 	glBindBuffer(GL_ARRAY_BUFFER,VBO1);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle1), Triangle1, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(Triangle1),Triangle1,GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,0,0);
 	glEnableVertexAttribArray(0);
 
 	// now unbind the first one
@@ -159,7 +162,7 @@ void AddShader(GLuint Program, const char* CurrentShader, GLenum ShaderType)
 }
 
 
-void complieShaders()
+void ProcessingShaders()
 {
 	Shader = glCreateProgram();
 
@@ -252,9 +255,9 @@ int main()
 	}
 
 	  CreatePenatgon();
-	  complieShaders();
+	 ProcessingShaders();
 
-	// the actual call loop
+	// the renderer loop
 	while (!glfwWindowShouldClose(MainWindow))
 	{
 		glfwPollEvents();
@@ -310,15 +313,12 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		// do the actual program work
-		glUseProgram(Shader);
-
-	   
 		glm::mat4 model(1.0f);
 		//model = glm::rotate(model, RotOffset* toRadians,glm::vec3(0.f,0.f,1.f));
-		model = glm::translate(model,glm::vec3(trOffset,0.0f,0.0f));
+		//model = glm::translate(model, glm::vec3(trOffset, 0.0f, 0.0f));
 		// finally u can scale
-		model = glm::scale(model, glm::vec3(1.0f, ScaleOffset, 1.0f));
-
+		model = glm::scale(model, glm::vec3(1.0f,1.0f, 1.0f));
+		glUseProgram(Shader);
 		
 		// now actually send the value into the vertex shader
 		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, value_ptr(model));
