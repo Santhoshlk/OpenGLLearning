@@ -6,10 +6,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Mesh.h"
+#include <Vector>
+
 const int Width = 800, Height = 800;
 const float toRadians = glm::pi<float>() / 180;
 
-GLuint VAO, VBO, EBO, Shader;
+GLuint  Shader;
+
+std::vector<Mesh*> MeshObj;
 
 GLint Uniform_model , Uniform_Projection;
 
@@ -34,7 +39,8 @@ float RotIncrement = 0.5f;
 static const char* VertexShader = "       \n\
 #version 330                              \n\
                                            \n\
-layout (location = 0) in vec3 pos;          \n\
+                                             \n\
+	layout (location = 0) in vec3 pos; \n\
                                              \n\
  uniform  mat4 model;                             \n\
  uniform  mat4 projection;                             \n\
@@ -56,7 +62,7 @@ void main()                                   \n\
    color = VertexColor;                \n\
 }";
 
-void CreatePenatgon()
+void CreatePentagon()
 {
 	// first u give all the vertices 
 	GLfloat Vertices[] =
@@ -84,31 +90,10 @@ void CreatePenatgon()
      0, 5, 1
 	};
 
-	// now u gen 1 VAO , 1 VBO, 1 EBO
-  
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	Mesh* Obj1 = new Mesh();
+	Obj1->CreateMesh(Vertices, Indices, 18, 24);
+	MeshObj.push_back(Obj1);
 
-	// make EBO next VBO
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
-
-	// make the vbo
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-
-	// u are gonna say how to traverse the vbo that dosent change
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// now u can unbind top down hierarchy
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	
 }
 
 void AddShader(GLuint Program, const char* CurrentShader, GLenum ShaderType)
@@ -244,7 +229,7 @@ int main()
 		return 1;
 	}
 
-	  CreatePenatgon();
+	  CreatePentagon();
 	 ProcessingShaders();
 
 	 // make the projection matrix
@@ -323,14 +308,8 @@ int main()
 		// now actually send the value into the vertex shader
 		glUniformMatrix4fv(Uniform_model, 1, GL_FALSE, value_ptr(model));
 		glUniformMatrix4fv(Uniform_Projection, 1, GL_FALSE, value_ptr(projectionMatrix));
-	    // u need to do this before u bind the vertex array as it uses vertex shader
-		// u only need to do vao as it stores all the data no need to bind others
-		glBindVertexArray(VAO);
-		// now draw the Elements
-		glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		MeshObj[0]->RenderMesh();
 		glUseProgram(0);
-
 		// atlast u can just sawp the Buffers
 		glfwSwapBuffers(MainWindow);
 	}
